@@ -2,37 +2,25 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const app = express();
+var items = ["Buy Food", "Cook Food", "Eat Food"];
 
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.static("public"));
 app.set("view engine", "ejs");
 
 app.get("/", function (req, res) {
 	var today = new Date();
-	var currentDay = today.getDay();
-	var day = "";
-	switch (currentDay) {
-		case 0:
-			day = "Raviwar";
-			break;
-		case 1:
-			day = "Somwar";
-			break;
-		case 2:
-			day = "Mangalwar";
-			break;
-		case 3:
-			day = "Budhwar";
-			break;
-		case 4:
-			day = "Guruwar";
-			break;
-		case 5:
-			day = "Shukrawar";
-			break;
-		case 6:
-			day = "Shaniwar";
-			break;
-	}
-	res.render("list", { kindOfDay: day });
+
+	var options = { weekday: "long", day: "numeric", month: "long" };
+	var day = today.toLocaleDateString("en-US", options);
+
+	res.render("list", { kindOfDay: day, newListItem: items });
+});
+
+app.post("/", function (req, res) {
+	var item = req.body.newItem;
+	items.push(item);
+	res.redirect("/");
 });
 
 app.listen(3000, function () {

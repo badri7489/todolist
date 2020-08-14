@@ -44,16 +44,24 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-Item.insertMany(defaultItems, function (err) {
-	if (err) {
-		console.log(err);
-	} else {
-		console.log("You are fucking great bitch");
-	}
-});
-
 app.get("/", function (req, res) {
-	res.render("list", { listTitle: "Today", newListItem: items });
+	Item.find({}, function (err, foundItems) {
+		// Here we are first checking if the database is empty or not and then we are inserting the items
+		// The items are stored in the foundItems array so if its length is 0 then it is empty then
+		// we should insert all the items to the database.
+		if (foundItems.length === 0) {
+			Item.insertMany(defaultItems, function (err) {
+				if (err) {
+					console.log(err);
+				} else {
+					console.log("You are fucking great bitch");
+				}
+			});
+			res.redirect("/");
+		} else {
+			res.render("list", { listTitle: "Today", newListItem: foundItems });
+		}
+	});
 });
 
 app.post("/", function (req, res) {

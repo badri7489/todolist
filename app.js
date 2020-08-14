@@ -26,10 +26,18 @@ const itemsSchema = new mongoose.Schema({
 	name: String,
 });
 
+const listSchema = new mongoose.Schema({
+	name: String,
+	items: [itemsSchema],
+});
+
 // Item model is created can also be called collections
 const Item = mongoose.model("Item", itemsSchema);
 
-// Items are added to the collections(table) Item
+const List = mongoose.model("List", listSchema);
+
+// Items are added to the collections(table) Item.
+// It can also be called documents(actually it is called documents in nosql languages)
 const item1 = new Item({
 	name: "Welcome to your to do list",
 });
@@ -64,19 +72,50 @@ app.get("/", function (req, res) {
 	});
 });
 
-app.post("/", function (req, res) {
-	let item = req.body.newItem;
-	if (req.body.list === "Work List") {
-		workItems.push(item);
-		res.redirect("/work");
-	} else {
-		items.push(item);
-		res.redirect("/");
-	}
+app.get("/:customListName", function (req, res) {
+	const customListName = req.params.customListName;
+
+	List.findOne({ name: customListName }, function (err, results) {
+		if (!err) {
+			if (results) {
+				// Show an existing list
+				res.render("list", { listTitle: results.name, newListItem: results.items });
+			} else {
+				// Create a new list
+				const list = new List({
+					name: customListName,
+					items: defaultItems,
+				});
+				list.save();
+				res.redirect("/" + customListName);
+			}
+		}
+	});
 });
 
-app.get("/work", function (req, res) {
-	res.render("list", { listTitle: "Work List", newListItem: workItems });
+app.get("/about", function (req, res) {
+	res.render("about");
+});
+
+app.post("/", function (req, res) {
+	const itemName = req.body.newItem;
+	const newItem = new Item({
+		name: itemName,
+	});
+	newItem.save();
+	res.redirect("/");
+});
+
+app.post("/delete", function (req, res) {
+	const checkedItemId = req.body.checkbox;
+	Item.findByIdAndRemove({ _id: checkedItemId }, function (err) {
+		if (err) {
+			console.log(err);
+		} else {
+			console.log("No error");
+			res.redirect("/");
+		}
+	});
 });
 
 // app.post("/work", function (req, res) {
@@ -84,10 +123,6 @@ app.get("/work", function (req, res) {
 // 	workItems.push(item);
 // 	res.redirect("/work");
 // });
-
-app.get("/about", function (req, res) {
-	res.render("about");
-});
 
 app.listen(3000, function () {
 	console.log("Jaa... jaa kr port 3000 pe dekh insaan aaya hai ki bhagwan");

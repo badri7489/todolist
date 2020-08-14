@@ -1,20 +1,59 @@
+// Requiring the npm modules
 const express = require("express");
 const bodyParser = require("body-parser");
-const date = require(__dirname + "/date.js");
+const mongoose = require("mongoose");
 
 // console.log(date);
 
+// Starting the express app
 const app = express();
-let items = ["Buy Food", "Cook Food", "Eat Food"];
-let workItems = [];
 
+// Using body parser for get the form inputs
+// Static folders like the css is used with the help of express
+// Express JS is set with the help of the view engine
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static("public"));
 app.set("view engine", "ejs");
 
+// The mongoose database is setup at port 27017
+mongoose.connect("mongodb://localhost:27017/listDB", {
+	useNewUrlParser: true,
+	useUnifiedTopology: true,
+});
+
+// Items Schema is created
+const itemsSchema = new mongoose.Schema({
+	name: String,
+});
+
+// Item model is created can also be called collections
+const Item = mongoose.model("Item", itemsSchema);
+
+// Items are added to the collections(table) Item
+const item1 = new Item({
+	name: "Welcome to your to do list",
+});
+
+const item2 = new Item({
+	name: "Hit the + button to add a new item",
+});
+
+const item3 = new Item({
+	name: "<-- Hit this to delete an item",
+});
+
+const defaultItems = [item1, item2, item3];
+
+Item.insertMany(defaultItems, function (err) {
+	if (err) {
+		console.log(err);
+	} else {
+		console.log("You are fucking great bitch");
+	}
+});
+
 app.get("/", function (req, res) {
-	let day = date.getDate();
-	res.render("list", { listTitle: day, newListItem: items });
+	res.render("list", { listTitle: "Today", newListItem: items });
 });
 
 app.post("/", function (req, res) {

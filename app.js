@@ -123,14 +123,27 @@ app.post("/", function (req, res) {
 
 app.post("/delete", function (req, res) {
 	const checkedItemId = req.body.checkbox;
-	Item.findByIdAndRemove({ _id: checkedItemId }, function (err) {
-		if (err) {
-			console.log(err);
-		} else {
-			console.log("No error");
-			res.redirect("/");
-		}
-	});
+	const listName = req.body.listName;
+	// console.log(listName);
+	if (listName === "Today") {
+		Item.findByIdAndRemove({ _id: checkedItemId }, function (err) {
+			if (!err) {
+				// console.log("Successfully Deleted!");
+				res.redirect("/");
+			}
+		});
+	} else {
+		List.findOneAndUpdate(
+			{ name: listName },
+			{ $pull: { items: { _id: checkedItemId } } },
+			function (err, foundList) {
+				if (!err) {
+					// console.log("Jhaant delete kr diye bhsdk!!");
+					res.redirect("/" + listName);
+				}
+			}
+		);
+	}
 });
 
 // app.post("/work", function (req, res) {
